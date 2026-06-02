@@ -183,29 +183,38 @@ void liberarLista(ListaCircular lista) {
 }
 
 /* =========================================================
-   FUNCOES IMPLEMENTADAS
+   FUNCOES PARA IMPLEMENTAR
    ========================================================= */
+   
+/* 
 
-/*
-TODO 1:
-Implemente uma funcao que, a partir do personagem atual, percorra a lista
-circular a partir do proximo no e devolva o PRIMEIRO inimigo encontrado.
-Se o atual for jogador, deve procurar um monstro.
-Se o atual for monstro, deve procurar um jogador.
-Se nao existir inimigo, retorne NULL.
+    utilizei essa função que o exercício pede para buscar o inimigo mais
+    próximo, dentro dela fiz um caso da celula atual ser vazia e aí 
+    retorna null, aí criei um tipo atual que recebe o personagem.tipo como 
+    atual. aí fiz uma celula auxiliar para marcar o proximo depois do atual
+    e enquanto o proximo for diferente de atual, o aux recebe o próximo 
+    e faz uma verificação se o proximo tipo do personagem é diferente do 
+    tipo do personsagem atual e se for retorna ele mesmo.
+
 */
+
 Celula buscaInimigoMaisProximo(Celula atual) {
+
     if (atual == NULL) return NULL;
-    
+
+    int tipoAtual = atual->personagem.tipo;
+
     Celula aux = atual->prox;
-    
+
     while (aux != atual) {
-        if (aux->personagem.tipo != atual->personagem.tipo) {
+
+        if (aux->personagem.tipo != tipoAtual) {
             return aux;
         }
+
         aux = aux->prox;
     }
-    
+
     return NULL;
 }
 
@@ -219,41 +228,69 @@ Casos importantes:
 - alvo eh o fim
 - alvo esta no meio
 */
+
+/* 
+    aqui eu utilizei a função removeDaListaCircular com os parâmetros que o 
+    exercício passou. 
+    Fiz uma verificação para ver se a lista é vazia ou se o alvo que quero 
+    remover é null e eu retorno a lista pois não há nada para remover.
+    
+    faço um celula aux para demarcar o inicio da lista e celula anterior para
+    demarcar o fim da lista. 
+    
+    aí eu fiz um do while para fazer a verificação de o inicio ser igual ao 
+    meu alvo e dentro dessa condição eu tenho outras duas condições
+    para remover o único elemento ou remover do inicio e retornar a lista 
+    
+    aí fiz um outro se para caso o número alvo esteja no fim da lista e se 
+    não for nenhuma dessas condições eu tiro do meio da lista fazendo o prox
+    do anterior ser igual ao proximo do inicio e tirando o inicio.
+    
+    e eu faço tudo isso enquanto o meu inicio que é o aux for diferente do
+    próprio inicio.
+
+*/
 void removeDaListaCircular(ListaCircular lista, Celula alvo) {
+
     if (listaVazia(lista) || alvo == NULL) return;
-    
-    Celula aux;
-    
-    // Caso 1: único elemento
-    if (lista->inicio == alvo && lista->inicio->prox == lista->inicio) {
-        free(alvo);
-        lista->inicio = NULL;
-        lista->fim = NULL;
-        return;
-    }
-    
-    // Encontrar o nó anterior ao alvo
-    aux = lista->inicio;
-    while (aux->prox != alvo && aux->prox != lista->inicio) {
+
+    Celula aux = lista->inicio;
+    Celula anterior = lista->fim;
+
+    do {
+
+        if (aux == alvo) {
+
+            if (lista->inicio == lista->fim) {
+                free(alvo);
+                lista->inicio = NULL;
+                lista->fim = NULL;
+                return;
+            }
+
+            if (aux == lista->inicio) {
+                lista->inicio = aux->prox;
+                lista->fim->prox = lista->inicio;
+                free(aux);
+                return;
+            }
+
+            if (aux == lista->fim) {
+                anterior->prox = lista->inicio;
+                lista->fim = anterior;
+                free(aux);
+                return;
+            }
+
+            anterior->prox = aux->prox;
+            free(aux);
+            return;
+        }
+
+        anterior = aux;
         aux = aux->prox;
-    }
-    
-    // Caso 2: alvo é o início
-    if (alvo == lista->inicio) {
-        lista->inicio = alvo->prox;
-        lista->fim->prox = lista->inicio;
-    }
-    // Caso 3: alvo é o fim
-    else if (alvo == lista->fim) {
-        lista->fim = aux;
-        aux->prox = lista->inicio;
-    }
-    // Caso 4: alvo está no meio
-    else {
-        aux->prox = alvo->prox;
-    }
-    
-    free(alvo);
+
+    } while (aux != lista->inicio);
 }
 
 /*
@@ -269,50 +306,77 @@ Passos sugeridos:
 6. se o alvo morrer, removê-lo da lista
 7. retornar o ponteiro do proximo personagem que devera agir
 */
+
+
+/* 
+
+    Para a função executa um turno eu fiz uma verificação para ver se a lista 
+    era vazia ou se a celula atual é = a null igual a outra função mas a 
+    diferença é que aqui retorna null e não a lista.
+    aí eu fiz celula inimigo e fiz a chamada da primeira função recebendo 
+    atual como parâmetro.
+    
+    aí se inimigo for vazio ou seja se não existir vai retornar o próximo, vai 
+    passar para o próximo.
+    
+    aí eu fiz celula proximo recebe o próximo valor do atual e fiz 
+    uma variável int dano que recebe personagem.dano do personagem
+    
+    e se personagem tem habilidade, eu gero um número aleatório de 0 
+    a 99
+    aí fiz um if para ele usar a habildade com 20% de chance. 
+    pego o nome do personagem e pego o nome da habilidade do personagem e aplico
+    o modificador da habilidade.
+    
+    depois disso pego o nome do personagem e o nome do inimigo e o dano que 
+    levou com ou sem o modificador e faço o cálculo do dano do personagem
+    
+    e para finalizar se a vida do personagem é menor ou igual a 0
+    printo na tela que o inimigo foi derrotado e eu o removo da lista circular 
+    e aí retorna o próximo personagem do turno.
+    
+*/
 Celula executaUmTurno(ListaCircular lista, Celula atual) {
+
     if (listaVazia(lista) || atual == NULL) return NULL;
-    
+
     Celula inimigo = buscaInimigoMaisProximo(atual);
+
+    if (inimigo == NULL) return atual->prox;
+
     Celula proximo = atual->prox;
-    
-    if (inimigo == NULL) return proximo;
-    
-    int danoTotal = atual->personagem.dano;
-    
-    // Verifica se tem habilidade (20% de chance)
+
+    int dano = atual->personagem.dano;
+
     if (atual->personagem.temHabilidade) {
-        float chance = (float)rand() / RAND_MAX;
-        if (chance < 0.2) {
-            danoTotal = (int)(danoTotal * atual->personagem.habilidade.modificador);
-            printf("%s usou %s e causou %d de dano!\n", 
+
+        int r = rand() % 100;
+
+        if (r < 20) {
+            printf("%s usa habilidade %s!\n",
                    atual->personagem.nome,
-                   atual->personagem.habilidade.nome,
-                   danoTotal);
-        } else {
-            printf("%s causou %d de dano!\n", 
-                   atual->personagem.nome, danoTotal);
+                   atual->personagem.habilidade.nome);
+
+            dano = dano *
+                   atual->personagem.habilidade.modificador;
         }
-    } else {
-        printf("%s causou %d de dano!\n", 
-               atual->personagem.nome, danoTotal);
     }
-    
-    // Aplica o dano
-    inimigo->personagem.vida -= danoTotal;
-    printf("%s agora tem %d de vida\n", 
-           inimigo->personagem.nome, inimigo->personagem.vida);
-    
-    // Verifica se o inimigo morreu
+
+    printf("%s ataca %s causando %d de dano.\n",
+           atual->personagem.nome,
+           inimigo->personagem.nome,
+           dano);
+
+    inimigo->personagem.vida -= dano;
+
     if (inimigo->personagem.vida <= 0) {
-        printf("%s foi derrotado!\n", inimigo->personagem.nome);
+
+        printf("%s foi derrotado!\n",
+               inimigo->personagem.nome);
+
         removeDaListaCircular(lista, inimigo);
-        
-        // Se o inimigo removido era o próximo da rodada, ajusta
-        if (proximo == inimigo) {
-            proximo = atual->prox;
-        }
     }
-    
+
     return proximo;
 }
 
